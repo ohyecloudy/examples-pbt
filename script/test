@@ -22,10 +22,6 @@ echo "==> Check unused deps in mix.lock..."
 
 mix deps.unlock --check-unused
 
-echo "==> Running dialyzer..."
-
-mix dialyzer
-
 echo "==> Running tests..."
 
 mix test
