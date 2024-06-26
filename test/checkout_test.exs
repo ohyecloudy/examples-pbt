@@ -21,6 +21,30 @@ defmodule CheckoutTest do
     end
   end
 
+  property "list of items with duplicates" do
+    forall price_list <- dupe_list() do
+      false == Checkout.valid_price_list(price_list)
+    end
+  end
+
+  property "list of items with specials" do
+    forall special_list <- dupe_special_list() do
+      false == Checkout.valid_special_list(special_list)
+    end
+  end
+
+  defp dupe_list() do
+    let items <- non_empty(list(utf8())) do
+      vector(length(items) + 1, {elements(items), integer()})
+    end
+  end
+
+  defp dupe_special_list() do
+    let items <- non_empty(list(utf8())) do
+      vector(length(items) + 1, {elements(items), integer(), integer()})
+    end
+  end
+
   defp bucket(n, unit) do
     div(n, unit) * unit
   end
