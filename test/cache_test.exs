@@ -2,12 +2,16 @@ defmodule PbtTest do
   use ExUnit.Case
   use PropCheck
   use PropCheck.StateM
+  doctest Cache
 
-  property "stateful property" do
+  @moduletag timeout: :infinity
+  @cache_size 10
+
+  property "stateful property", [:verbose] do
     forall cmds <- commands(__MODULE__) do
-      ActualSystem.start_link()
+      Cache.start_link(@cache_size)
       {history, state, result} = run_commands(__MODULE__, cmds)
-      ActualSystem.stop()
+      Cache.stop()
 
       (result == :ok)
       |> aggregate(command_names(cmds))
@@ -21,34 +25,75 @@ defmodule PbtTest do
     end
   end
 
-  # initial model value at system start. should be deterministic.
-  def initial_state() do
-    %{}
+  defmodule State do
+    @cache_size 10
+    defstruct max: @cache_size, count: 0, entries: []
   end
 
-  # List of possible commands to run against the system
+  def initial_state() do
+    %State{}
+  end
+
   def command(_state) do
-    oneof([
-      {:call, ActualSystem, :some_call, [term(), term()]}
+    frequency([
+      {1, {:call, Cache, :find, [key()]}},
+      {3, {:call, Cache, :cache, [key(), val()]}},
+      {1, {:call, Cache, :flush, []}}
     ])
   end
 
-  # determines whether a command should be valid under the current state
-  def precondition(_state, {:call, _mod, _fun, _args}) do
+  def precondition(%State{count: 0}, {:call, Cache, :flush, []}) do
+    false
+  end
+
+  def precondition(%State{}, {:call, _mod, _fun, _args}) do
     true
   end
 
-  # given that state prior to the call `{:call, mod, fun, args}`,
-  # determine whether the result (res) coming from the actual system
-  # makes sense according to the model
+  def key() do
+    oneof([range(1, @cache_size), integer()])
+  end
+
+  def val() do
+    integer()
+  end
+
+  def next_state(state, _res, {:call, Cache, :flush, _}) do
+    %{state | count: 0, entries: []}
+  end
+
+  def next_state(
+        s = %State{entries: l, count: n, max: m},
+        _res,
+        {:call, Cache, :cache, [k, v]}
+      ) do
+    case List.keyfind(l, k, 0) do
+      nil when n == m ->
+        %{s | entries: tl(l) ++ [{k, v}]}
+
+      nil when n < m ->
+        %{s | entries: l ++ [{k, v}], count: n + 1}
+
+      {^k, _} ->
+        %{s | entries: List.keyreplace(l, k, 0, {k, v})}
+    end
+  end
+
+  def next_state(state, _res, {:call, _mod, _fun, _args}) do
+    state
+  end
+
+  def postcondition(%State{entries: l}, {:call, _, :find, [key]}, res) do
+    case List.keyfind(l, key, 0) do
+      nil ->
+        res == {:error, :not_found}
+
+      {^key, val} ->
+        res == {:ok, val}
+    end
+  end
+
   def postcondition(_state, {:call, _mod, _fun, _args}, _res) do
     true
-  end
-
-  # assuming the postcondition for a call was true, update the model
-  # accordingly for the test to proceed
-  def next_state(state, _res, {:call, _mod, _fun, _args}) do
-    newstate = state
-    newstate
   end
 end
