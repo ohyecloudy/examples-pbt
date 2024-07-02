@@ -25,6 +25,28 @@ defmodule PbtTest do
     end
   end
 
+  property "parallel stateful property", numtests: 1000 do
+    forall cmds <- parallel_commands(__MODULE__) do
+      Cache.start_link(@cache_size)
+      {history, state, result} = run_parallel_commands(__MODULE__, cmds)
+      Cache.stop()
+
+      (result == :ok)
+      |> aggregate(command_names(cmds))
+      |> when_fail(
+        IO.puts("""
+        ======
+        Failing commands sequence
+        #{inspect(cmds)}
+        At state: #{inspect(state)}
+        ======
+        Result: #{inspect(result)}
+        History: #{inspect(history)}
+        """)
+      )
+    end
+  end
+
   defmodule State do
     @cache_size 10
     defstruct max: @cache_size, count: 0, entries: []
