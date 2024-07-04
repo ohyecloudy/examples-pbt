@@ -9,12 +9,6 @@ defmodule Cache do
     GenServer.stop(__MODULE__)
   end
 
-  def init(n) do
-    :ets.new(:cache, [:public, :named_table])
-    :ets.insert(:cache, {:count, 0, n})
-    {:ok, :nostate}
-  end
-
   def find(key) do
     case :ets.match(:cache, {:_, {key, :"$1"}}) do
       [[val]] -> {:ok, val}
@@ -23,6 +17,20 @@ defmodule Cache do
   end
 
   def cache(key, val) do
+    GenServer.call(__MODULE__, {:cache, key, val})
+  end
+
+  def flush() do
+    GenServer.call(__MODULE__, :flush)
+  end
+
+  def init(n) do
+    :ets.new(:cache, [:public, :named_table])
+    :ets.insert(:cache, {:count, 0, n})
+    {:ok, :nostate}
+  end
+
+  def handle_call({:cache, key, val}, _from, state) do
     case :ets.match(:cache, {:"$1", {key, :_}}) do
       [[n]] ->
         :ets.insert(:cache, {n, {key, val}})
@@ -36,12 +44,15 @@ defmodule Cache do
             :ets.insert(:cache, [{current + 1, {key, val}}, {:count, current + 1, max}])
         end
     end
+
+    {:reply, :ok, state}
   end
 
-  def flush() do
+  def handle_call(:flush, _from, state) do
     [{:count, _, max}] = :ets.lookup(:cache, :count)
     :ets.delete_all_objects(:cache)
     :ets.insert(:cache, {:count, 0, max})
+    {:reply, :ok, state}
   end
 
   def handle_call(_call, _from, state) do
