@@ -25,7 +25,7 @@ defmodule PbtTest do
     end
   end
 
-  property "parallel stateful property", numtests: 1000 do
+  property "parallel stateful property" do
     forall cmds <- parallel_commands(__MODULE__) do
       Cache.start_link(@cache_size)
       {history, state, result} = run_parallel_commands(__MODULE__, cmds)
