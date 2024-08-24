@@ -1,39 +1,21 @@
 # -*- mode: org -*-
 # -*- coding: utf-8 -*-
-#+TITLE: [PROJECT_NAME]
+#+TITLE: examples-pbt
 #+AUTHOR: Jongbin Oh
 #+EMAIL: ohyecloudy@gmail.com
 
-프로젝트 요약 설명
+[[http://ohyecloudy.com/pnotes/archives/property-based-testing-with-proper-erlang-and-elixir-fred-hebert-2019/][Property-Based Testing with PropEr, Erlang, and Elixir (Fred Hebert, 2019)]] 책에 나온 예제 프로젝트
 
-** :rocket: 시작하기 (Getting Started)
+#+begin_example
+  script/test
+#+end_example
 
-   시작하는 방법부터 알려준다. 가장 궁금해하는 정보
+테스트를 실행해 속성 기반 테스트(Property-Based Testing) 실행
 
-** :white_check_mark: 테스트 실행하기 (Running the tests)
+* 관련 글
 
-   테스트를 실행하는 방법 설명
-
-** :balance_scale: 라이선스 (License)
-
-   MIT 라이선스를 따르고 있습니다. =LICENSE= 파일을 참고하세요.
-
-** :construction: 이 템플릿을 복사한 후 해야할 일
-
-*** =.tool-versions= 파일 확인
-
-    + =erlang=, =elixir= 버전
-
-*** =.dialyzer_ignore.exs= 파일
-
-    #+begin_src elixir
-      defmodule MyAwesomeProject do
-        use Mix.Project
-
-        def project do
-          [
-            # ...
-            dialyzer: [ignore_warnings: ".dialyzer_ignore.exs"]
-          ]
-        end
-    #+end_src
+  - [[http://ohyecloudy.com/pnotes/archives/property-based-testing-thinking-property/][속성 기반 테스트(Property-based Testing)와 속성 정의에 도움을 주는 네 가지 방법]]
+  - [[http://ohyecloudy.com/pnotes/archives/property-based-testing-kata09/][예제로 보는 Property-Based Testing (feat. Kata09: Back to the Checkout)]]
+  - [[http://ohyecloudy.com/pnotes/archives/property-based-testing-unhappy-path/][Property-Based Testing에서의 예외 흐름(Unhappy path) 테스트]]
+  - [[http://ohyecloudy.com/pnotes/archives/stateful-property-based-testing/][Cache 예제코드를 테스트하며 맛보는 Stateful Property-Based Testing]]
+  - [[http://ohyecloudy.com/pnotes/archives/stateful-property-based-testing-parallel/][Stateful Property-Based Testing 병렬 테스트]]
